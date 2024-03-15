@@ -12,6 +12,7 @@ boolean doScan = false; // 是否进行扫描
 boolean doConnect = false; // 是否进行连接
 boolean connected = false; // 是否已连接
 boolean doSend = false; // 是否发送指令
+boolean doPrint = false; // 是否打印数据
 
 std:: string bluetoothDeviceName = ""; // 蓝牙设备名称
 std:: string sendCommand = ""; // 要发送的指令
@@ -26,6 +27,10 @@ BLEClient* pClient; // 客户端
 // 定义一个类，用于处理搜索到设备时的回调
 class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
     void onResult(BLEAdvertisedDevice advertisedDevice) {
+
+        if(doPrint){
+            Serial.println(advertisedDevice.toString().c_str());
+        }
         // 如果搜索到的设备名称与我们要连接的设备名称一致，则停止搜索，并设置doConnect为true
         if (advertisedDevice.haveName() && (advertisedDevice.getName() == bluetoothDeviceName)) {
             advertisedDevice.getScan()->stop(); // 停止当前扫描
@@ -81,8 +86,7 @@ bool ConnectToServer(void) {
         delete pServer;
         pServer = nullptr;
         pClient->disconnect();
-        return false;
-    }
+        return false;    }
     Serial.println("Got Service successfully");
 
     // 尝试获取服务中的特征
@@ -163,6 +167,7 @@ void processSerialData() {
             }else if(inputString.endsWith("SCAN")){
 
                 doScan = true;
+                doPrint = true;
                 Serial.println("Start Scanning");
             }
             inputString = ""; // 清空输入字符串
@@ -183,7 +188,7 @@ void setup() {
 
 // 定义loop函数，用于循环执行
 void loop() {
-
+    doPrint = false;
     processSerialData(); // 处理串口数据
     // 如果需要扫描则进行扫描
     if (doScan) {
