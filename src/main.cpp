@@ -158,6 +158,12 @@ void processSerialData() {
                 doConnect = false;
                 connected = false;
                 Serial.println("DisconnectSuccess!");
+
+                // 扫描设备
+            }else if(inputString.endsWith("SCAN")){
+
+                doScan = true;
+                Serial.println("Start Scanning");
             }
             inputString = ""; // 清空输入字符串
         }
