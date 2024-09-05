@@ -132,6 +132,7 @@ void processSerialData() {
         inputString += inChar;
         // 检查是否接收到完整的字符串
         if (inputString.endsWith("END")) {
+            Serial.println("Got command");
 
             //连接新设备
             if (inputString.startsWith("CONNECT")) {
@@ -164,7 +165,7 @@ void processSerialData() {
                 Serial.println("DisconnectSuccess!");
 
                 // 扫描设备
-            }else if(inputString.endsWith("SCAN")){
+            }else if(inputString.startsWith("SCAN")){
 
                 doScan = true;
                 doPrint = true;
