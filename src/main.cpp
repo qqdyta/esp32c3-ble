@@ -17,6 +17,7 @@ boolean doPrint = false; // 是否打印数据
 std:: string bluetoothDeviceName = ""; // 蓝牙设备名称
 std:: string sendCommand = ""; // 要发送的指令
 unsigned long startSearchTime = 0; // 开始搜索的时间
+int SCAN_TIME = 5000;
 
 // 定义一些全局的蓝牙设备和特征对象
 BLEAdvertisedDevice* pServer; // 广告设备
@@ -39,7 +40,7 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
             doConnect = true;
             Serial.println("Got the device we are looking for!");
             // 如果搜索时间超过10秒则停止搜索
-        }else if( millis() - startSearchTime > 10000){
+        }else if( millis() - startSearchTime > SCAN_TIME){
             advertisedDevice.getScan()->stop(); // 停止当前扫描
             doScan = false;
             Serial.println("Stop Scanning");
@@ -183,8 +184,8 @@ void setup() {
     BLEScan* pBLEScan = BLEDevice::getScan(); // 获取蓝牙扫描对象
     pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks()); // 设置扫描回调
     pBLEScan->setActiveScan(true); // 设置为主动扫描
-    pBLEScan->setInterval(100); // 设置扫描间隔
-    pBLEScan->setWindow(80); // 设置扫描窗口
+    pBLEScan->setInterval(10); // 设置扫描间隔
+    pBLEScan->setWindow(10); // 设置扫描窗口
 }
 
 // 定义loop函数，用于循环执行
