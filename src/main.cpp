@@ -17,7 +17,7 @@ boolean doPrint = false; // 是否打印数据
 std:: string bluetoothDeviceName = ""; // 蓝牙设备名称
 std:: string sendCommand = ""; // 要发送的指令
 unsigned long startSearchTime = 0; // 开始搜索的时间
-int SCAN_TIME = 5000;
+int SCAN_TIME = 8000;
 
 // 定义一些全局的蓝牙设备和特征对象
 BLEAdvertisedDevice* pServer; // 广告设备
@@ -127,6 +127,7 @@ bool ConnectToServer(void) {
 
 // 定义一个函数，用于处理串口数据
 void processSerialData() {
+
     static String inputString = ""; // 静态变量，保留上次循环中的数据
     while (Serial.available()) {
         char inChar = (char)Serial.read();
@@ -138,16 +139,17 @@ void processSerialData() {
             //连接新设备
             if (inputString.startsWith("CONNECT")) {
                 // 提取蓝牙设备名称
+
                 int startIndex = inputString.indexOf("START") + 8;
                 int endIndex = inputString.lastIndexOf("END") - startIndex;
                 bluetoothDeviceName = inputString.substring(startIndex, startIndex + endIndex).c_str();
                 doScan = true;
                 Serial.print("Got the device Name: ");
                 Serial.print(bluetoothDeviceName.c_str());
+                inputString="";
 
                 // 发送指令
             }else if(inputString.startsWith("SENT")){
-                // 提取指令
                 int startIndex = inputString.indexOf("SENT") + 4;
                 int endIndex = inputString.lastIndexOf("END") - startIndex;
                 Serial.print("GotCMD");
@@ -155,22 +157,27 @@ void processSerialData() {
                 Serial.println("END");
                 sendCommand = inputString.substring(startIndex, startIndex + endIndex).c_str();
                 doSend = true;
+                inputString="";
                 // 断开连接
             }else if(inputString.startsWith("DISCONNECT")){
                 // 断开连接
+
                 BLEDevice::getScan()->clearResults();
                 pClient->disconnect();
                 doScan = false;
                 doConnect = false;
                 connected = false;
                 Serial.println("DisconnectSuccess!");
-
+                bluetoothDeviceName = "";  //断开蓝牙连接的时候清空设备名称
+                inputString="";
                 // 扫描设备
             }else if(inputString.startsWith("SCAN")){
-
+                inputString="";
                 doScan = true;
                 doPrint = true;
                 Serial.println("Start Scanning");
+                inputString="";
+
             }
             inputString = ""; // 清空输入字符串
         }
@@ -181,11 +188,13 @@ void processSerialData() {
 void setup() {
     Serial.begin(115200); // 初始化串口
     BLEDevice::init(""); // 初始化蓝牙设备
+    Serial.println("Power On SUCCESS");
     BLEScan* pBLEScan = BLEDevice::getScan(); // 获取蓝牙扫描对象
     pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks()); // 设置扫描回调
     pBLEScan->setActiveScan(true); // 设置为主动扫描
     pBLEScan->setInterval(10); // 设置扫描间隔
     pBLEScan->setWindow(10); // 设置扫描窗口
+
 }
 
 // 定义loop函数，用于循环执行
@@ -194,6 +203,7 @@ void loop() {
     processSerialData(); // 处理串口数据
     // 如果需要扫描则进行扫描
     if (doScan) {
+        doConnect = false;
         startSearchTime = millis();
         Serial.println("Start Scanning");
         BLEDevice::getScan()->clearResults();
