@@ -39,6 +39,7 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
             doScan = false;
             doConnect = true;
             Serial.println("Got the device we are looking for!");
+            delete this;  // 新增释放对象
             // 如果搜索时间超过10秒则停止搜索
         }else if( millis() - startSearchTime > SCAN_TIME){
             advertisedDevice.getScan()->stop(); // 停止当前扫描
@@ -55,6 +56,7 @@ class MyClientCallback : public BLEClientCallbacks {
         doScan = false;
         connected = false;
         Serial.println("End connection to the server!");
+        delete this; // 新增释放对象
     }
 };
 
@@ -119,7 +121,6 @@ bool ConnectToServer(void) {
         return false;
     }
     Serial.println("CONSUCCESS");
-
     delete pServer;
     pServer = nullptr;
     return true;
