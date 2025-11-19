@@ -1,47 +1,160 @@
-## 测试的环境
-IDE：Clion 2023.3
+# 蓝牙调试神器：你的专属探险工具 🧭
 
-PlatformIO
+欢迎来到蓝牙世界的探险！你手中的这块小小的 **XIAO ESP32C3** 开发板，现在已经变身为一个强大而灵活的蓝牙调试神器。忘掉那些复杂、繁琐的调试过程吧，从现在起，你将像一位经验丰富的冒险家，用简单、直观的“咒语”（指令）去探索、连接并与未知的蓝牙设备进行“心灵沟通”。
 
-ESP32C3串口波特率： 115200
+## ⚔️ 英雄的装备：开箱指南
 
-## 实现的功能
-ESP32C3 上电后监听串口，通过不同的指令来进行连接与发送指令
+在开始你的蓝牙探险之前，请确保你的“装备”已经准备就绪：
 
+1.  **硬件核心**：一块 XIAO ESP32C3 开发板。
+2.  **通信桥梁**：一根 Type-C 数据线，连接你的电脑和开发板。
+3.  **魔法终端**：一个串口监视器工具（例如 PlatformIO 的 Serial Monitor, Arduino IDE 的串口监视器, 或者 CoolTerm 等）。
+4.  **波特率设置**：请将你的串口工具波特率设置为 `115200`，这是我们与神器沟通的“频率”。
 
-### 扫描设备
-命令格式： **SCANEND**
-举例：SCANEND
-发送命令后设备会开始进行搜索，并且在串口打印搜索到的蓝牙设备的信息
+一切就绪后，将代码烧录到你的 ESP32C3 中，激动人心的冒险即将开始！
 
-### 连接设备
-命令格式： **CONNECT设备蓝牙名称END**
-举例: CONNECTMiBand4END : ESP32C3会开始搜索蓝夜设备10秒，如果发现名称为MiBand4的蓝牙设备
-则会自动开始连接。
-发送命令进行连接，连接后可以保存实例，
+## 📖 魔法书：指令大全
 
-### 向已经连接的设备发送指令
-命令格式 ** SENT命令END**
-举例：SENTAT+CONFIG=?\r\nEND
-向设备发送AT+CONFIG=?\r\n指令，设备返回相关的信息会通过串口打印
+现在，翻开这本古老的魔法书，学习那些能让你驰骋蓝牙世界的强大咒语吧！在你的串口终端中输入这些指令，然后按下回车，即可施放魔法。
 
-### 断开连接
-连接成功后可以发送DISCONNECTEND断开连接
+---
 
-## 标志位与流程
+### ✨ **HELP** - 引路明灯
 
-### doConnect 为True
-上电初始化的时候doConnect为False， doScan为False，connected为False，loop函数进行不断的循环，
-检查串口的信息。
+当你迷失在指令的森林中时，念出这个咒语，它会为你照亮前行的道路，展示所有可用的魔法。
 
-如果串口接收到 CONNECT + END 的指令表示需要连接指定名称的蓝牙设备，将串口中的设备名称提取出来，设置bluetoothDeviceName，
-同时将doConnect设置为True。
-loop函数中检测到doConnect 为True则开始连接指定的蓝牙设备，连接成功后将connected设置为True，同时将doConnect设置为False，
-表示已经连接成功，不需要再次连接，
+-   **效果**：列出所有可用的指令及其简要说明。
+-   **示例**：
+    ```
+    HELP
+    ```
+-   **回响**：
+    ```
+    Available commands:
+    SCAN <timeout> - Scans for BLE devices
+    CONNECT <address> - Connects to a device by address
+    DISCONNECT - Disconnects from the current device
+    SEND <data> - Sends data to the connected device
+    SENDHEX <hex_data> - Sends data as a hexadecimal string
+    STATUS - Shows the current connection status
+    HELP - Shows this help message
+    ```
 
-### 指令收发
-如果串口接受到的信息中是以SEND开头+END结尾的指令，表示需要发送指令，将SEND和END之间的指令提取出来，设置doSend为True，
-则loop的时候会发送相关指令，发送完成后将doSend设置为False，表示不需要发送指令。
+---
 
-### 断开连接
-将
+### 👁️ **SCAN** - 千里眼
+
+施放这个咒语，你的设备会化身“千里眼”，侦查周围所有正在广播的蓝牙设备，无论它们隐藏得多深。
+
+-   **参数**：`<timeout>` (可选) - 扫描的持续时间（秒），默认为10秒。
+-   **示例**：
+    -   进行一次10秒的默认扫描：
+        ```
+        SCAN
+        ```
+    -   进行一次30秒的深度扫描：
+        ```
+        SCAN 30
+        ```
+-   **回响**：
+    ```
+    Starting scan...
+    State changed to: SCANNING
+    (扫描结束后)
+    State changed to: IDLE
+    Scan finished. Found devices:
+    Device found: Name: MiBand4, Address: a1:b2:c3:d4:e5:f6, RSSI: -55
+    Device found: Name: Bluetooth Speaker, Address: 1a:2b:3c:4d:5e:6f, RSSI: -78
+    ...
+    ```
+
+---
+
+### 🤝 **CONNECT** - 联盟之握
+
+当你发现目标设备后，使用这个咒语，与之建立牢不可破的“联盟”。你需要提供目标的“身份符文”（MAC地址）。
+
+-   **参数**：`<address>` - 你想要连接的设备的MAC地址。
+-   **示例**：
+    ```
+    CONNECT a1:b2:c3:d4:e5:f6
+    ```
+-   **回响**：
+    ```
+    State changed to: CONNECTING
+    (连接成功后)
+    Connected to server
+    State changed to: CONNECTED
+    ```
+
+---
+
+### 🔮 **STATUS** - 神谕之镜
+
+想知道你当前的状态吗？是孤身一人，还是已与盟友同行？这个咒语会像一面镜子，映照出你当前最真实的状态。
+
+-   **示例**：
+    ```
+    STATUS
+    ```
+-   **回响** (已连接时)：
+    ```
+    Status: CONNECTED
+    ```
+-   **回响** (未连接时):
+    ```
+    Status: IDLE
+    ```
+
+---
+
+### 💨 **SEND** - 风之密语
+
+与已连接的设备进行对话，发送你的“密语”。
+
+-   **参数**：`<data>` - 你想发送的文本信息。
+-   **示例**：
+    ```
+    SEND Hello, World!
+    ```
+-   **回响**：无直接回响，但你的消息已随风送达。设备返回的信息会直接显示在串口上。
+
+---
+
+### 📜 **SENDHEX** - 符文信使
+
+当你需要发送更底层的、由十六进制“符文”组成的指令时，这个咒语将是你的最佳选择。
+
+-   **参数**：`<hex_data>` - 十六进制字符串，无需`0x`前缀，也无需空格。
+-   **示例**：
+    ```
+    SENDHEX 0102030405
+    ```
+-   **回响**：同样，消息已通过“符文”传递，静待对方的回应。
+
+---
+
+### 🚪 **DISCONNECT** - 断开链接
+
+当你需要结束与设备的连接，和平地“分道扬镳”时，使用此咒语。
+
+-   **示例**：
+    ```
+    DISCONNECT
+    ```
+-   **回响**：
+    ```
+    State changed to: DISCONNECTING
+    Disconnected
+    State changed to: IDLE
+    ```
+
+## 🗺️ 未来的藏宝图
+
+这次冒险才刚刚开始！在未来的更新中，我们计划探索更多激动人心的功能：
+
+-   **自动重连**：当与盟友意外失联时，能够自动尝试重新建立连接。
+-   **服务与特征扫描**：不仅是发现设备，更能深入探索其内部的“结构”（服务与特征）。
+-   **多设备管理**：或许有一天，你可以同时与多个设备建立联盟！
+
+祝你在这片广阔的蓝牙世界中，探险愉快！
